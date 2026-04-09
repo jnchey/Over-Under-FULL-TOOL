@@ -1,0 +1,16 @@
+{
+  "name": "overunder-founder-intelligence",
+  "version": "1.0.0",
+  "description": "Over/Under Founder Intelligence Suite — Founder Path Viz + Hedge Calculator",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  }
+}

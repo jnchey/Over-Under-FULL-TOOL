@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Over/Under — Founder Intelligence Suite</title>
+  <meta name="description" content="Explore founder outcome paths and model hedge decisions across funding rounds.">
+  <link rel="preconnect" href="https://api.fontshare.com">
+  <link href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,600,700&f[]=instrument-serif@400&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- ═══════════════════════════════ HEADER ═══════════════════════════════ -->
+  <header class="site-header">
+    <div class="header-inner">
+      <img src="logo.png" alt="Over/Under" class="site-logo">
+      <div class="header-right">
+        <span class="header-badge">Founder Intelligence Suite</span>
+        <button class="admin-lock" id="admin-trigger" aria-label="Admin settings">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <rect x="3" y="7" width="10" height="7" rx="1.5" stroke="currentColor" stroke-width="1.3"/>
+            <path d="M5 7V5a3 3 0 0 1 6 0v2" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ═══════════════════════════════ MAIN ═══════════════════════════════ -->
+  <main class="main-content">
+
+    <!-- Page intro (dynamic — updated per tab) -->
+    <div id="page-header-inner" class="page-header-inner">
+      <p id="page-title" class="page-title">Founder Outcome Intelligence</p>
+      <p id="page-subtitle" class="page-subtitle">Explore the odds of 10,000 founders navigating the venture backed landscape in the dynamic waterfall below. Check out the Destination and Hedge tabs to dive even deeper.</p>
+    </div>
+
+    <!-- Three-tab navigation -->
+    <div class="tab-bar">
+      <div class="view-toggle" role="tablist" aria-label="View mode">
+        <button class="view-btn active" role="tab" aria-selected="true" data-tab="journey">Journey</button>
+        <button class="view-btn" role="tab" aria-selected="false" data-tab="destination">Destination</button>
+        <button class="view-btn" role="tab" aria-selected="false" data-tab="hedge">Hedge</button>
+      </div>
+      <!-- Legend — shown on Journey + Destination tabs only -->
+      <div class="legend-row" id="viz-legend">
+        <span class="legend-item"><span class="legend-swatch" style="background:var(--box-advance)"></span>Advance</span>
+        <span class="legend-item"><span class="legend-swatch" style="background:var(--box-exit-1)"></span>2.5x</span>
+        <span class="legend-item"><span class="legend-swatch" style="background:var(--box-exit-2)"></span>1x</span>
+        <span class="legend-item"><span class="legend-swatch" style="background:var(--box-exit-3)"></span>0.5x</span>
+        <span class="legend-item"><span class="legend-swatch" style="background:var(--box-failed)"></span>Failed</span>
+      </div>
+    </div>
+
+
+
+    <!-- ─── JOURNEY TAB ─── -->
+    <div class="tab-panel" id="tab-journey">
+      <section class="viz-section">
+        <div class="card" style="padding:20px 24px 20px; overflow-x:auto;">
+          <div class="journey-canvas" id="journey-canvas"></div>
+          <p class="viz-footnote">*All waterfall results are derived from real world outcomes as reported by Carta, and were processed in a 10,000 iteration Monte Carlo statistical model.</p>
+        </div>
+      </section>
+
+      <section class="tooltip-panel" id="tooltip-panel">
+        <div class="tooltip-title" id="tooltip-title">Hover over a founder path above to explore</div>
+        <div class="tooltip-grid">
+          <div class="tooltip-card">
+            <div class="tooltip-card-label">Details</div>
+            <div class="tooltip-body" id="tooltip-stats">
+              <p class="tooltip-hint">Each box represents a group of founders.</p>
+            </div>
+          </div>
+          <div class="tooltip-card">
+            <div class="tooltip-card-label">Context</div>
+            <div class="tooltip-body" id="tooltip-note">
+              <p class="tooltip-hint">The box height shows the probability of that outcome.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ─── CARTA STARTUP INSIGHTS ─── -->
+      <section class="carta-section">
+        <div class="section-label">Carta Founder Journey Insights</div>
+        <div class="carta-scroll-wrap">
+          <div class="carta-scroll-track">
+            <img src="carta-01.jpg" class="carta-card" alt="What's good Seed to Series A rate?" />
+            <img src="carta-02.jpg" class="carta-card" alt="Founders: how much will you own?" />
+            <img src="carta-03.jpg" class="carta-card" alt="Will you get from Series A to Series B?" />
+            <img src="carta-04.jpg" class="carta-card" alt="Founder equity by number of founders" />
+            <img src="carta-05.jpg" class="carta-card" alt="Graduating from Seed to A is hard" />
+            <img src="carta-06.jpg" class="carta-card" alt="Equity sold in early-stage VC rounds" />
+            <img src="carta-07.jpg" class="carta-card" alt="VC-backed startups take decades" />
+            <img src="carta-08.jpg" class="carta-card" alt="Series A valuations across the US" />
+            <img src="carta-09.jpg" class="carta-card" alt="Early-stage fundraising cheatsheet" />
+            <img src="carta-10.jpg" class="carta-card" alt="More startups getting to Series A" />
+            <img src="carta-11.jpg" class="carta-card" alt="Time from Seed to Series A" />
+            <img src="carta-12.jpg" class="carta-card" alt="Equity sold in each VC round" />
+            <img src="carta-13.jpg" class="carta-card" alt="Less than 1 in 4 founding teams owns majority after Series A" />
+          </div>
+          <div class="carta-fade-right"></div>
+        </div>
+      </section>
+    </div>
+
+    <!-- ─── DESTINATION TAB ─── -->
+    <div class="tab-panel hidden" id="tab-destination">
+      <section class="viz-section">
+        <div class="card" style="padding:20px 24px 24px;">
+          <div class="dest-canvas" id="dest-canvas"></div>
+        </div>
+        <div class="card" style="padding:20px 24px 24px; margin-top:12px;">
+          <div class="dest-canvas" id="stage-dist-canvas"></div>
+        </div>
+      </section>
+
+      <section class="tooltip-panel" id="dest-context-panel">
+        <div class="tooltip-title" id="dest-context-title">All Founders · Aggregate View</div>
+        <div class="tooltip-grid">
+          <div class="tooltip-card">
+            <div class="tooltip-card-label">Details</div>
+            <div class="tooltip-body" id="dest-context-stats">
+              <p class="tooltip-hint">Select any outcome card above to see the breakdown.</p>
+            </div>
+          </div>
+          <div class="tooltip-card">
+            <div class="tooltip-card-label">Context</div>
+            <div class="tooltip-body" id="dest-context-note">
+              <p class="tooltip-hint">Each outcome reflects founders across all stages weighted by probability.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="viz-section" style="margin-top:12px;">
+        <div class="section-label">Ranked Founder $ Exit Outcomes</div>
+        <div class="card" style="padding:20px 24px 28px;">
+          <div id="endpoint-chart"></div>
+        </div>
+      </section>
+    </div>
+
+    <!-- ─── HEDGE TAB ─── -->
+    <div class="tab-panel hidden" id="tab-hedge">
+      <div class="hedge-layout">
+
+        <!-- LEFT: Inputs -->
+        <div class="hedge-inputs">
+
+          <!-- Startup Exit Scenario -->
+          <div class="card">
+            <div class="card-section-label">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+              Define Your Startup Exit Scenario
+            </div>
+            <p class="card-hint" style="margin-top:4px; margin-bottom:14px; color:var(--text-faint);">Choosing your startup's exit circumstance will define how your hedge will win you or cost you.</p>
+            <div class="input-group">
+              <label class="input-label">Last Round Raised</label>
+              <select class="hedge-select" id="select-last-round">
+                <option value="Seed">Seed</option>
+                <option value="Series A">Series A</option>
+                <option value="Series B">Series B</option>
+              </select>
+            </div>
+            <div class="input-group" style="margin-top:14px;">
+              <label class="input-label">Exit Multiple from Last Round Raised</label>
+              <select class="hedge-select" id="select-exit-multiple">
+                <!-- Populated by hedge.js -->
+              </select>
+              <p class="input-hint" id="implied-exit-val">—</p>
+            </div>
+            <div class="likelihood-row" id="likelihood-row">
+              <!-- Rendered by hedge.js -->
+            </div>
+            <div class="implied-seed-card" id="implied-seed-card">
+              <!-- Rendered by hedge.js -->
+            </div>
+          </div>
+
+          <!-- Hedging Decisions -->
+          <div class="card">
+            <div class="card-section-label">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              Define How Much You Hedge
+            </div>
+            <p class="card-hint" style="margin-top:4px; margin-bottom:14px; color:var(--text-faint);">Choose what percent of your startup common shares you want to hedge. You can assume hedge participation after each round, or choose not to hedge again.</p>
+            <div class="hedge-rounds" id="hedge-rounds">
+              <!-- Rendered by hedge.js -->
+            </div>
+            <div class="valuation-row" id="valuation-row">
+              <!-- Rendered by hedge.js -->
+            </div>
+          </div>
+
+          <!-- Hedge Payout Scenario -->
+          <div class="card">
+            <div class="card-section-label">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+              Hedge Payout Scenario
+            </div>
+            <p class="card-hint" style="margin-top:4px; margin-bottom:14px; color:var(--text-faint);">Choose the outcome of the venture fund you are committing your hedge to. A 2X multiple is 50th percentile performance.</p>
+            <div class="input-group">
+              <label class="input-label">Hedge Payout Outcome</label>
+              <select class="hedge-select" id="select-payout-scenario">
+                <!-- Populated by hedge.js -->
+              </select>
+            </div>
+            <div class="payout-result-card" id="payout-result-card">
+              <!-- Rendered by hedge.js -->
+            </div>
+            <div class="hedge-contribution" id="hedge-contribution">
+              <!-- Rendered by hedge.js -->
+            </div>
+          </div>
+
+          <!-- Round Economics toggle -->
+          <button class="toggle-advanced" id="btn-toggle-advanced">
+            <svg id="advanced-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+            Show round economics
+          </button>
+          <div class="card hidden" id="round-economics-card">
+            <div class="card-section-label" style="margin-bottom:10px;">Round Economics</div>
+            <div id="round-economics-table"></div>
+          </div>
+
+        </div>
+
+        <!-- RIGHT: Results -->
+        <div class="hedge-results">
+
+          <!-- Verdict card -->
+          <div class="verdict-card" id="verdict-card">
+            <!-- Rendered by hedge.js -->
+          </div>
+
+          <!-- Sensitivity Chart -->
+          <div class="card card-dark">
+            <div class="card-section-label dark-label">Sensitivity Analysis</div>
+            <p class="card-hint dark-hint">Hedged vs. unhedged payout at each exit multiple</p>
+            <div class="sensitivity-chart-wrap" id="sensitivity-chart"></div>
+          </div>
+
+          <!-- Sensitivity Table -->
+          <div class="card">
+            <div class="card-section-label" style="margin-bottom:10px;">Exit Multiple Breakdown</div>
+            <div class="table-wrap" id="sensitivity-table"></div>
+          </div>
+
+          <!-- Aggregate Outcome Likelihoods -->
+          <div class="card">
+            <div class="card-section-label" style="margin-bottom:4px;">Aggregate Outcome Likelihoods</div>
+            <p class="card-hint" id="agg-likelihood-subtitle" style="margin-bottom:12px;">—</p>
+            <div id="agg-likelihoods"></div>
+          </div>
+
+          <!-- Expected Value (collapsible) -->
+          <div class="card">
+            <button class="toggle-ev" id="btn-toggle-ev">
+              <span class="card-section-label" style="margin-bottom:0;">Expected Value Analysis</span>
+              <svg id="ev-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+            </button>
+            <p class="card-hint" id="ev-subtitle" style="margin-top:4px; margin-bottom:0;">—</p>
+            <div class="hidden" id="ev-content"></div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <footer class="site-footer">
+    <p>Over/Under Founder Intelligence Suite. Based on theoretical probability models and market data. For illustrative purposes only — not financial advice.</p>
+  </footer>
+
+  <!-- ═══════════════════════════════ ADMIN OVERLAY ═══════════════════════════════ -->
+  <div class="admin-overlay hidden" id="admin-overlay">
+    <div class="admin-panel">
+
+      <!-- PIN Gate -->
+      <div class="admin-gate" id="admin-gate">
+        <div class="admin-gate-inner">
+          <h2 class="admin-title">Model Assumptions</h2>
+          <p class="admin-subtitle">Enter PIN to access</p>
+          <div class="pin-row">
+            <input type="password" id="admin-pin" class="pin-input" maxlength="6" placeholder="PIN" autocomplete="off">
+            <button class="pin-submit" id="pin-submit">Unlock</button>
+          </div>
+          <p class="pin-error hidden" id="pin-error">Incorrect PIN</p>
+        </div>
+      </div>
+
+      <!-- Unlocked Admin -->
+      <div class="admin-content hidden" id="admin-content">
+        <div class="admin-header">
+          <div>
+            <h2 class="admin-title">Model Assumptions</h2>
+            <p class="admin-subtitle">Adjust the core parameters driving the model</p>
+          </div>
+          <button class="admin-close" id="admin-close">✕</button>
+        </div>
+
+        <!-- Admin section toggle tabs -->
+        <div class="admin-tab-row">
+          <button class="admin-tab-btn active" data-admin-tab="founder-path">Founder Path</button>
+          <button class="admin-tab-btn" data-admin-tab="hedge">Hedge</button>
+        </div>
+
+        <!-- ── FOUNDER PATH ADMIN ── -->
+        <div id="admin-section-founder-path">
+
+          <div class="admin-section">
+            <div class="admin-section-label">Cohort Size</div>
+            <div class="admin-field">
+              <label class="admin-label">Founders in cohort</label>
+              <input type="number" class="admin-input" id="admin-cohort" value="10000" min="100" max="1000000" step="100">
+            </div>
+          </div>
+
+          <div class="admin-section">
+            <div class="admin-section-label">Graduation Rates</div>
+            <p class="admin-hint">% of companies entering each stage that advance to the next round</p>
+            <div class="admin-grid">
+              <div class="admin-field">
+                <label class="admin-label">Seed → Series A</label>
+                <div class="admin-input-row"><input type="number" class="admin-input" id="grad-Seed" step="0.01" min="0" max="100"><span class="admin-unit">%</span></div>
+              </div>
+              <div class="admin-field">
+                <label class="admin-label">Series A → Series B</label>
+                <div class="admin-input-row"><input type="number" class="admin-input" id="grad-Series A" step="0.01" min="0" max="100"><span class="admin-unit">%</span></div>
+              </div>
+              <div class="admin-field">
+                <label class="admin-label">Series B → Series C</label>
+                <div class="admin-input-row"><input type="number" class="admin-input" id="grad-Series B" step="0.01" min="0" max="100"><span class="admin-unit">%</span></div>
+              </div>
+              <div class="admin-field">
+                <label class="admin-label">Series C → D+ (Unicorn)</label>
+                <div class="admin-input-row"><input type="number" class="admin-input" id="grad-Series C" step="0.01" min="0" max="100"><span class="admin-unit">%</span></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="admin-section">
+            <div class="admin-section-label">Exit Outcome Distributions</div>
+            <p class="admin-hint">Of founders who exit at each stage (don't advance), what % land in each outcome. Each row should sum to 100%.</p>
+            <div class="admin-table-wrap">
+              <table class="admin-table">
+                <thead>
+                  <tr><th>Stage</th><th>Failed</th><th>0.5X</th><th>1X</th><th>2.5X</th><th>Sum</th></tr>
+                </thead>
+                <tbody id="exit-dist-body"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="admin-section">
+            <div class="admin-section-label">Computed Outputs</div>
+            <p class="admin-hint">Read-only — these update as you change inputs above</p>
+            <div class="admin-outputs" id="admin-outputs-fp"></div>
+          </div>
+
+          <div class="admin-actions">
+            <button class="admin-btn admin-btn-secondary" id="admin-reset-fp">Reset to Defaults</button>
+            <button class="admin-btn admin-btn-primary" id="admin-save-fp">Save & Apply</button>
+          </div>
+        </div>
+
+        <!-- ── HEDGE ADMIN ── -->
+        <div id="admin-section-hedge" class="hidden">
+
+          <div class="admin-section">
+            <div class="admin-section-label">Round Economics</div>
+            <div class="admin-grid">
+              <div class="admin-field">
+                <label class="admin-label">Seed Post-Money Valuation</label>
+                <div class="admin-input-row"><span class="admin-unit">$</span><input type="number" class="admin-input" id="hadmin-seedPostMoney" step="1000000" min="0"></div>
+              </div>
+              <div class="admin-field">
+                <label class="admin-label">Step-Up Multiple (per round)</label>
+                <div class="admin-input-row"><input type="number" class="admin-input" id="hadmin-stepUpMultiple" step="0.5" min="1"><span class="admin-unit">x</span></div>
+              </div>
+              <div class="admin-field">
+                <label class="admin-label">Seed Ownership</label>
+                <div class="admin-input-row"><input type="number" class="admin-input" id="hadmin-seedOwnership" step="0.5" min="0" max="100"><span class="admin-unit">%</span></div>
+              </div>
+              <div class="admin-field">
+                <label class="admin-label">Dilution at Series A</label>
+                <div class="admin-input-row"><input type="number" class="admin-input" id="hadmin-dilutionSeriesA" step="0.5" min="0" max="100"><span class="admin-unit">%</span></div>
+              </div>
+              <div class="admin-field">
+                <label class="admin-label">Dilution at Series B</label>
+                <div class="admin-input-row"><input type="number" class="admin-input" id="hadmin-dilutionSeriesB" step="0.5" min="0" max="100"><span class="admin-unit">%</span></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="admin-section">
+            <div class="admin-section-label">Hedge Parameters</div>
+            <div class="admin-grid">
+              <div class="admin-field">
+                <label class="admin-label">Payout Multiplier — Low</label>
+                <div class="admin-input-row"><input type="number" class="admin-input" id="hadmin-hedgeMultiplierLow" step="0.1"><span class="admin-unit">x</span></div>
+              </div>
+              <div class="admin-field">
+                <label class="admin-label">Payout Multiplier — Med</label>
+                <div class="admin-input-row"><input type="number" class="admin-input" id="hadmin-hedgeMultiplierMed" step="0.1"><span class="admin-unit">x</span></div>
+              </div>
+              <div class="admin-field">
+                <label class="admin-label">Payout Multiplier — High</label>
+                <div class="admin-input-row"><input type="number" class="admin-input" id="hadmin-hedgeMultiplierHigh" step="0.1"><span class="admin-unit">x</span></div>
+              </div>
+              <div class="admin-field">
+                <label class="admin-label">Payout Cap (0 = no cap)</label>
+                <div class="admin-input-row"><span class="admin-unit">$</span><input type="number" class="admin-input" id="hadmin-hedgePayoutCap" step="100000" min="0"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="admin-section">
+            <div class="admin-section-label">Liquidation Preferences</div>
+            <div class="admin-grid">
+              <div class="admin-field">
+                <label class="admin-label">Structure</label>
+                <select class="admin-input" id="hadmin-liqPrefStructure">
+                  <option value="1x Non-Participating">1x Non-Participating</option>
+                  <option value="1x Participating">1x Participating</option>
+                  <option value="2x Non-Participating">2x Non-Participating</option>
+                </select>
+              </div>
+              <div class="admin-field">
+                <label class="admin-label">Liq Pref Multiple</label>
+                <div class="admin-input-row"><input type="number" class="admin-input" id="hadmin-liqPrefMultiple" step="0.5" min="0"><span class="admin-unit">x</span></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="admin-section">
+            <div class="admin-section-label">Round Overview</div>
+            <p class="admin-hint">Derived from round economics above. Updates as you change inputs.</p>
+            <div class="admin-outputs" id="admin-outputs-hedge"></div>
+          </div>
+
+          <div class="admin-actions">
+            <button class="admin-btn admin-btn-secondary" id="admin-reset-hedge">Reset to Defaults</button>
+            <button class="admin-btn admin-btn-primary" id="admin-save-hedge">Save & Apply</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <script src="calcEngine.js"></script>
+  <script src="app.js"></script>
+  <script src="hedge.js"></script>
+  <script src="admin.js"></script>
+</body>
+</html>
