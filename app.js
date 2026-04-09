@@ -787,6 +787,100 @@ function showDestTooltip(d) {
   noteEl.innerHTML = `<p class="tooltip-note-text">${note}</p>`;
 }
 
+// === ENDPOINT MATH CARD ===
+function buildEndpointMathSteps(d) {
+  const admin  = loadHedgeAdmin();
+  const seedPM = admin.seedPostMoney;
+  const stepUp = admin.stepUpMultiple;
+  const seedOwn= admin.seedOwnership;
+  const dils   = [0, admin.dilutionSeriesA, admin.dilutionSeriesB, admin.dilutionSeriesB];
+  const lbls   = ['Seed', 'Series A', 'Series B', 'Series C'];
+  const lpm    = admin.liqPrefMultiple || 1;
+  const UNICORN_EXIT = 1_000_000_000;
+  const si = lbls.indexOf(d.stage);
+
+  const steps = [];
+  let pm = seedPM, own = seedOwn;
+
+  // Walk from Seed up to exit stage, showing each compounding step
+  steps.push({ lbl: 'Seed Post-Money', eq: 'Starting post-money (admin setting)', val: fmtProceeds(pm) });
+  steps.push({ lbl: 'Founder Ownership at Seed', eq: `Starting position \u2014 ${(seedOwn*100).toFixed(0)}% of company`, val: `${(seedOwn*100).toFixed(2)}%` });
+
+  for (let i = 1; i <= si; i++) {
+    const prevPM = pm, prevOwn = own;
+    pm  = pm  * stepUp;
+    own = own * (1 - dils[i]);
+    steps.push({ lbl: `${lbls[i]} Post-Money`, eq: `${fmtProceeds(prevPM)} \u00d7 ${stepUp}\u00d7 step-up`, val: fmtProceeds(pm) });
+    steps.push({ lbl: `Ownership after ${lbls[i]} dilution`, eq: `${(prevOwn*100).toFixed(2)}% \u00d7 (1 \u2212 ${(dils[i]*100).toFixed(0)}%)`, val: `${(own*100).toFixed(2)}%` });
+  }
+
+  // Outcome-specific final steps
+  if (d.outcome === 'failed') {
+    steps.push({ lbl: 'Outcome', eq: 'Company failed \u2014 no exit value', val: '$0' });
+    steps.push({ lbl: 'Founder Proceeds', eq: null, val: '$0', result: true });
+  } else if (d.outcome === 'advanced') {
+    steps.push({ lbl: 'Exit Value \u2014 Unicorn Floor', eq: 'Flat $1B valuation floor', val: '$1,000,000,000' });
+    steps.push({ lbl: 'Founder Proceeds', eq: `${(own*100).toFixed(2)}% \u00d7 $1,000,000,000`, val: fmtProceeds(UNICORN_EXIT * own), result: true });
+  } else if (d.outcome === 'twohalf') {
+    const exitVal = pm * 2.5;
+    steps.push({ lbl: 'Gross Exit Value (2.5\u00d7)', eq: `${fmtProceeds(pm)} \u00d7 2.5`, val: fmtProceeds(exitVal) });
+    steps.push({ lbl: 'Founder Proceeds', eq: `${(own*100).toFixed(2)}% \u00d7 ${fmtProceeds(exitVal)}`, val: fmtProceeds(own * exitVal), result: true });
+  } else if (d.outcome === 'one') {
+    const exitVal = pm * 1.0;
+    steps.push({ lbl: 'Gross Exit Value (1.0\u00d7)', eq: `${fmtProceeds(pm)} \u00d7 1.0 \u2014 pref converts to common`, val: fmtProceeds(exitVal) });
+    steps.push({ lbl: 'Founder Proceeds', eq: `${(own*100).toFixed(2)}% \u00d7 ${fmtProceeds(exitVal)}`, val: fmtProceeds(own * exitVal), result: true });
+  } else if (d.outcome === 'half') {
+    const gross  = pm * 0.5;
+    const claim  = pm * own * lpm;
+    const resid  = Math.max(0, gross - claim);
+    steps.push({ lbl: 'Gross Exit Value (0.5\u00d7)', eq: `${fmtProceeds(pm)} \u00d7 0.5`, val: fmtProceeds(gross) });
+    steps.push({ lbl: `Liq. Pref Claim (${lpm}\u00d7 non-participating)`, eq: `${fmtProceeds(pm)} \u00d7 ${(own*100).toFixed(2)}% \u00d7 ${lpm}`, val: fmtProceeds(claim) });
+    steps.push({ lbl: 'Residual after pref satisfied', eq: `${fmtProceeds(gross)} \u2212 ${fmtProceeds(claim)}`, val: fmtProceeds(resid) });
+    steps.push({ lbl: 'Founder Proceeds', eq: `${(own*100).toFixed(2)}% \u00d7 ${fmtProceeds(resid)}`, val: fmtProceeds(own * resid), result: true });
+  }
+  return steps;
+}
+
+function showEndpointMathCard(d, pageX, pageY) {
+  const card = document.getElementById('endpoint-math-card');
+  if (!card) return;
+  const steps = buildEndpointMathSteps(d);
+  const stepsHtml = steps.map(s => `
+    <div class="ep-math-step${s.result ? ' ep-math-step--result' : ''}">
+      <div class="ep-math-step-label">${s.lbl}</div>
+      ${s.eq ? `<div class="ep-math-step-eq">${s.eq}</div>` : ''}
+      <div class="ep-math-step-val"${s.result ? ` style="color:${d.color}"` : ''}>${s.val}</div>
+    </div>`).join('');
+  const pct = `${(d.probability*100).toFixed(d.probability < 0.01 ? 2 : 1)}%`;
+  card.innerHTML = `
+    <div class="ep-math-header">
+      <div class="ep-math-title">${d.label}</div>
+      <div class="ep-math-result" style="color:${d.color}">${fmtProceeds(d.proceeds)}</div>
+    </div>
+    <div class="ep-math-steps">${stepsHtml}</div>
+    <div class="ep-math-footer">${pct} probability \u00b7 ${fmtOdds(d.probability)}</div>`;
+  card.style.display = 'flex';
+  card.classList.remove('is-visible');
+  void card.offsetHeight;
+  card.classList.add('is-visible');
+  const cW = 300, cH = Math.min(card.scrollHeight, window.innerHeight * 0.72);
+  let left = pageX + 14;
+  let top  = pageY - 30;
+  if (left + cW > window.innerWidth - 16) left = pageX - cW - 14;
+  if (top < window.scrollY + 8) top = window.scrollY + 8;
+  if (top + cH > window.scrollY + window.innerHeight - 16) top = window.scrollY + window.innerHeight - cH - 16;
+  card.style.left = left + 'px';
+  card.style.top  = top  + 'px';
+}
+
+function hideEndpointMathCard() {
+  const card = document.getElementById('endpoint-math-card');
+  if (card) {
+    card.classList.remove('is-visible');
+    setTimeout(() => { if (!card.classList.contains('is-visible')) card.style.display = 'none'; }, 200);
+  }
+}
+
 // === FOUNDER EXIT SCENARIOS CHART ===
 function fmtProceeds(v) {
   if (v === 0) return '$0';
@@ -910,7 +1004,21 @@ function renderEndpointChart() {
       yOff += sepH;
     }
 
-    const rowG = g.append('g').attr('transform', `translate(0,${yOff})`);
+    const rowG = g.append('g').attr('transform', `translate(0,${yOff})`).style('cursor', 'pointer');
+
+    // Hover highlight (rendered first so it sits behind all other elements)
+    const bgRect = rowG.append('rect')
+      .attr('x', -ML + 4).attr('y', -1)
+      .attr('width', ML + chartW + MR - 8).attr('height', rowH + 2)
+      .attr('rx', 4).attr('fill', 'var(--text)').attr('opacity', 0)
+      .attr('pointer-events', 'none');
+    rowG
+      .on('mouseenter', function() { bgRect.transition().duration(120).attr('opacity', 0.055); })
+      .on('mouseleave', function() { bgRect.transition().duration(180).attr('opacity', 0); })
+      .on('click',      function(event) {
+        event.stopPropagation();
+        showEndpointMathCard(d, event.pageX, event.pageY);
+      });
 
     // Row label
     rowG.append('text')
@@ -1267,6 +1375,46 @@ document.addEventListener('DOMContentLoaded', () => {
   renderSummaryCards('summary-grid-dest');
   initDestContextPanel();
   renderEndpointChart();
+
+  // Carta lightbox
+  const lightbox    = document.getElementById('carta-lightbox');
+  const lightboxImg = document.getElementById('carta-lightbox-img');
+  const lightboxClose = document.querySelector('.carta-lightbox-close');
+  const lightboxOverlay = document.querySelector('.carta-lightbox-overlay');
+
+  function openLightbox(src, alt) {
+    lightboxImg.src = src;
+    lightboxImg.alt = alt || '';
+    lightbox.classList.add('is-open');
+    lightbox.setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeLightbox() {
+    lightbox.classList.remove('is-open');
+    lightbox.setAttribute('aria-hidden', 'true');
+    document.body.style.overflow = '';
+  }
+
+  document.querySelectorAll('.carta-card').forEach(img => {
+    img.addEventListener('click', () => openLightbox(img.src, img.alt));
+  });
+
+  if (lightboxClose)   lightboxClose.addEventListener('click', closeLightbox);
+  if (lightboxOverlay) lightboxOverlay.addEventListener('click', closeLightbox);
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && lightbox.classList.contains('is-open')) closeLightbox();
+    if (e.key === 'Escape') hideEndpointMathCard();
+  });
+
+  // Endpoint math card: close when clicking outside
+  document.addEventListener('click', e => {
+    const mathCard = document.getElementById('endpoint-math-card');
+    if (mathCard && mathCard.classList.contains('is-visible') && !mathCard.contains(e.target)) {
+      hideEndpointMathCard();
+    }
+  });
 
   // Journey interactivity hint — soft teal pulse 3× on first load
   setTimeout(() => {

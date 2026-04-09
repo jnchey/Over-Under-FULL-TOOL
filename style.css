@@ -462,6 +462,184 @@ button { cursor: pointer; background: none; border: none; font: inherit; color: 
 .summary-section { margin-bottom: var(--sp-8); }
 
 /* ═══════════════════════════════════════════════════════════
+   ENDPOINT MATH CARD
+   ═══════════════════════════════════════════════════════════ */
+.ep-math-card {
+  position: absolute;
+  z-index: 8000;
+  width: 300px;
+  max-height: 72vh;
+  background: var(--card-dark);
+  border-radius: var(--radius);
+  border: 1px solid rgba(255,255,255,0.08);
+  box-shadow: 0 20px 60px rgba(0,0,0,0.45);
+  display: none;
+  flex-direction: column;
+  overflow: hidden;
+  pointer-events: all;
+}
+
+.ep-math-card.is-visible {
+  display: flex;
+  animation: ep-card-in 180ms ease;
+}
+
+@keyframes ep-card-in {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.ep-math-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 16px 18px 14px;
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+  flex-shrink: 0;
+}
+
+.ep-math-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.6);
+  line-height: 1.4;
+}
+
+.ep-math-result {
+  font-size: 17px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.ep-math-steps {
+  padding: 14px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.ep-math-step {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.ep-math-step--result {
+  padding-top: 10px;
+  border-top: 1px solid rgba(255,255,255,0.07);
+  margin-top: 2px;
+}
+
+.ep-math-step-label {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.28);
+}
+
+.ep-math-step-eq {
+  font-size: 11px;
+  color: rgba(255,255,255,0.42);
+  font-style: italic;
+  line-height: 1.4;
+}
+
+.ep-math-step-val {
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.82);
+}
+
+.ep-math-footer {
+  padding: 10px 18px 14px;
+  border-top: 1px solid rgba(255,255,255,0.07);
+  font-size: 11px;
+  color: rgba(255,255,255,0.3);
+  flex-shrink: 0;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   CARTA LIGHTBOX
+   ═══════════════════════════════════════════════════════════ */
+.carta-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 200ms ease;
+}
+
+.carta-lightbox.is-open {
+  opacity: 1;
+  pointer-events: all;
+}
+
+.carta-lightbox-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.82);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+.carta-lightbox-content {
+  position: relative;
+  z-index: 1;
+  max-width: 90vw;
+  max-height: 90vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.carta-lightbox-content img {
+  max-width: 90vw;
+  max-height: 88vh;
+  width: auto;
+  height: auto;
+  border-radius: var(--radius);
+  box-shadow: 0 24px 64px rgba(0,0,0,0.5);
+  transform: scale(0.94);
+  transition: transform 220ms ease;
+}
+
+.carta-lightbox.is-open .carta-lightbox-content img {
+  transform: scale(1);
+}
+
+.carta-lightbox-close {
+  position: absolute;
+  top: -14px;
+  right: -14px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--card);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  transition: background 150ms ease;
+}
+
+.carta-lightbox-close:hover {
+  background: var(--border-subtle);
+}
+
+/* ═══════════════════════════════════════════════════════════
    CARTA STARTUP INSIGHTS — horizontal scroll strip
    ═══════════════════════════════════════════════════════════ */
 .carta-section {
