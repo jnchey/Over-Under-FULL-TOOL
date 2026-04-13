@@ -21,7 +21,7 @@ function updateSliderFill(el) {
   const max = parseFloat(el.max) || 100;
   const val = parseFloat(el.value) || 0;
   const pct = ((val - min) / (max - min)) * 100;
-  el.style.background = `linear-gradient(to right, #18181C ${pct}%, #E0E0DE ${pct}%)`;
+  el.style.background = `linear-gradient(to right, #1F1C16 ${pct}%, #D9D6CF ${pct}%)`;
 }
 
 // Derive hedge probability arrays from Founder Path exit distributions (single source of truth)
@@ -160,7 +160,7 @@ function renderPayoutScenario(admin, user, result) {
 
   document.getElementById('payout-result-card').innerHTML = `<div class="payout-result-box">
     <div class="pr-label">Hedge payout</div>
-    <div class="pr-value" style="color:${result.hedgePayoutAfterCap > 0 ? '#40A684' : 'inherit'}">${fmtCurrencyFull(result.hedgePayoutAfterCap)}</div>
+    <div class="pr-value" style="color:${result.hedgePayoutAfterCap > 0 ? '#3D8C6E' : 'inherit'}">${fmtCurrencyFull(result.hedgePayoutAfterCap)}</div>
     <div class="pr-sub">${fmtCurrencyFull(result.totalCumulativeHedgeBasis)} × ${result.hedgePayoutMultiplier}x${admin.hedgePayoutCap > 0 && result.grossHedgePayout > admin.hedgePayoutCap ? ' (capped)' : ''}</div>
   </div>`;
 
@@ -210,12 +210,12 @@ function renderRoundEconomicsTable(re) {
 function renderVerdictCard(result) {
   const isPos = result.difference > 0;
   const isNeu = result.difference === 0;
-  const borderColor = isPos ? '#40A684' : isNeu ? 'transparent' : '#A13544';
+  const borderColor = isPos ? '#3D8C6E' : isNeu ? 'transparent' : '#C43E3E';
   const iconSvg = isPos
-    ? `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#40A684" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>`
+    ? `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3D8C6E" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>`
     : isNeu
     ? `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(250,248,245,0.4)" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/></svg>`
-    : `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#A13544" stroke-width="2"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/></svg>`;
+    : `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#C43E3E" stroke-width="2"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/></svg>`;
 
   document.getElementById('verdict-card').innerHTML = `
     <div class="verdict-inner" style="border-left-color:${borderColor}">
@@ -239,7 +239,7 @@ function renderVerdictCard(result) {
         </div>
         <div class="vm-cell">
           <div class="vm-label">Difference</div>
-          <div class="vm-value" style="color:${isPos ? '#40A684' : isNeu ? 'white' : '#A13544'}">${result.difference >= 0 ? '+' : ''}${fmtCurrency(result.difference)}</div>
+          <div class="vm-value" style="color:${isPos ? '#3D8C6E' : isNeu ? 'white' : '#C43E3E'}">${result.difference >= 0 ? '+' : ''}${fmtCurrency(result.difference)}</div>
           <div class="vm-sub">${result.pctImpact !== null ? fmtPct(result.pctImpact) : 'N/A'}</div>
         </div>
       </div>
@@ -305,7 +305,7 @@ function renderSensitivityChart(admin, user, result) {
   barG.append('rect')
     .attr('x', x1('hedged')).attr('y', d => y(Math.max(d.hedged, 0)))
     .attr('width', x1.bandwidth()).attr('height', d => Math.max(h - y(Math.max(d.hedged, 0)), 0))
-    .attr('rx', 3).attr('fill', '#40A684');
+    .attr('rx', 3).attr('fill', '#3D9E7A');
 
   barG.append('rect')
     .attr('x', x1('unhedged')).attr('y', d => y(Math.max(d.unhedged, 0)))
@@ -314,7 +314,7 @@ function renderSensitivityChart(admin, user, result) {
 
   // Legend — sits in the lower portion of margin.bottom, below x-axis labels
   const legY = h + margin.top + margin.bottom - 16;
-  [['#40A684', 'Hedged'], ['rgba(250,248,245,0.35)', 'Unhedged']].forEach(([color, label], i) => {
+  [['#3D9E7A', 'Hedged'], ['rgba(250,248,245,0.35)', 'Unhedged']].forEach(([color, label], i) => {
     const lx = w / 2 - 80 + i * 90;
     svg.append('rect').attr('x', margin.left + lx).attr('y', legY).attr('width', 10).attr('height', 10).attr('rx', 2).attr('fill', color);
     svg.append('text').attr('x', margin.left + lx + 14).attr('y', legY + 8)
@@ -334,8 +334,8 @@ function renderSensitivityTable(result) {
         <td class="sens-exit">${row.exitMultipleLabel}</td>
         <td>${fmtCurrencyFull(row.hedgedPayout)}</td>
         <td>${fmtCurrencyFull(row.unhedgedPayout)}</td>
-        <td style="color:${row.hedgeDiff > 0 ? '#40A684' : row.hedgeDiff < 0 ? '#A13544' : 'inherit'}">${row.hedgeDiff >= 0 ? '+' : ''}${fmtCurrencyFull(row.hedgeDiff)}</td>
-        <td style="color:${row.hedgeDiff > 0 ? '#40A684' : row.hedgeDiff < 0 ? '#A13544' : 'inherit'}">${row.pctImpact !== null ? fmtPct(row.pctImpact) : 'N/A'}</td>
+        <td style="color:${row.hedgeDiff > 0 ? '#3D8C6E' : row.hedgeDiff < 0 ? '#C43E3E' : 'inherit'}">${row.hedgeDiff >= 0 ? '+' : ''}${fmtCurrencyFull(row.hedgeDiff)}</td>
+        <td style="color:${row.hedgeDiff > 0 ? '#3D8C6E' : row.hedgeDiff < 0 ? '#C43E3E' : 'inherit'}">${row.pctImpact !== null ? fmtPct(row.pctImpact) : 'N/A'}</td>
       </tr>`).join('')}
     </tbody>
   </table>`;
@@ -369,10 +369,10 @@ function renderAggLikelihoods(admin, user) {
   const exactly0x = jointByExit[0] || 0;
 
   const items = [
-    { label: '2.5x exit', value: exactly2_5x, color: '#40A684' },
-    { label: '\u2264 1.0x exit', value: lte1x, color: '#A13544' },
-    { label: '\u2264 0.5x exit', value: lte0_5x, color: '#A13544' },
-    { label: '0.0x (total loss)', value: exactly0x, color: '#A13544' },
+    { label: '2.5x exit', value: exactly2_5x, color: '#3D8C6E' },
+    { label: '\u2264 1.0x exit', value: lte1x, color: '#C43E3E' },
+    { label: '\u2264 0.5x exit', value: lte0_5x, color: '#C43E3E' },
+    { label: '0.0x (total loss)', value: exactly0x, color: '#C43E3E' },
   ];
 
   const el = document.getElementById('agg-likelihoods');
@@ -420,19 +420,19 @@ function renderEVSection(result, user) {
           <td class="sens-exit">${row.exitMultipleLabel}</td>
           <td>${(row.probability * 100).toFixed(0)}%</td>
           <td>${fmtCurrencyFull(row.hedgeDiff)}</td>
-          <td style="color:${row.weightedDiff > 0 ? '#40A684' : row.weightedDiff < 0 ? '#A13544' : 'inherit'}">${row.weightedDiff >= 0 ? '+' : ''}${fmtCurrencyFull(row.weightedDiff)}</td>
-          <td style="color:${row.helpsOrHurts === 'helps' ? '#40A684' : row.helpsOrHurts === 'hurts' ? '#A13544' : 'inherit'};font-size:12px">${row.helpsOrHurts === 'helps' ? 'Helps' : row.helpsOrHurts === 'hurts' ? 'Hurts' : '—'}</td>
+          <td style="color:${row.weightedDiff > 0 ? '#3D8C6E' : row.weightedDiff < 0 ? '#C43E3E' : 'inherit'}">${row.weightedDiff >= 0 ? '+' : ''}${fmtCurrencyFull(row.weightedDiff)}</td>
+          <td style="color:${row.helpsOrHurts === 'helps' ? '#3D8C6E' : row.helpsOrHurts === 'hurts' ? '#C43E3E' : 'inherit'};font-size:12px">${row.helpsOrHurts === 'helps' ? 'Helps' : row.helpsOrHurts === 'hurts' ? 'Hurts' : '—'}</td>
         </tr>`).join('')}</tbody>
       </table>
     </div>
     <div class="ev-summary">
       <div class="ev-row">
         <span class="ev-label">Expected Value of Hedge</span>
-        <span class="ev-value" style="color:${result.expectedValue.totalEV > 0 ? '#40A684' : result.expectedValue.totalEV < 0 ? '#A13544' : 'inherit'}">${result.expectedValue.totalEV >= 0 ? '+' : ''}${fmtCurrencyFull(result.expectedValue.totalEV)}</span>
+        <span class="ev-value" style="color:${result.expectedValue.totalEV > 0 ? '#3D8C6E' : result.expectedValue.totalEV < 0 ? '#C43E3E' : 'inherit'}">${result.expectedValue.totalEV >= 0 ? '+' : ''}${fmtCurrencyFull(result.expectedValue.totalEV)}</span>
       </div>
       <div class="ev-stats">
-        <span>Hedge helps: <strong style="color:#40A684">${(result.expectedValue.pHedgeHelps * 100).toFixed(0)}%</strong></span>
-        <span>Hedge hurts: <strong style="color:#A13544">${(result.expectedValue.pHedgeHurts * 100).toFixed(0)}%</strong></span>
+        <span>Hedge helps: <strong style="color:#3D8C6E">${(result.expectedValue.pHedgeHelps * 100).toFixed(0)}%</strong></span>
+        <span>Hedge hurts: <strong style="color:#C43E3E">${(result.expectedValue.pHedgeHurts * 100).toFixed(0)}%</strong></span>
       </div>
       <p class="ev-verdict">${result.expectedValue.verdict}</p>
     </div>`;

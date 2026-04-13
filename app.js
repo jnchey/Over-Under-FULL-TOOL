@@ -58,7 +58,7 @@ const OUTCOME_ORDER = ['advanced', 'twohalf', 'one', 'half', 'failed'];
 const NEXT_ROUND = { 'Seed': 'Series A', 'Series A': 'Series B', 'Series B': 'Series C', 'Series C': 'Series D' };
 
 const BOX_STYLES = {
-  advanced: { fill: '#40A684', stroke: '#2e8a6e', text: '#FAF8F5' },
+  advanced: { fill: '#3D8C6E', stroke: '#2d7058', text: '#FAFAF8' },
   twohalf:  { fill: 'hsl(38, 14%, 89%)', stroke: 'hsl(38, 12%, 78%)', text: '#1A1814' },
   one:      { fill: 'hsl(38, 11%, 83%)', stroke: 'hsl(38, 9%, 72%)',  text: '#1A1814' },
   half:     { fill: 'hsl(38, 8%, 77%)',  stroke: 'hsl(38, 6%, 66%)',  text: '#1A1814' },
@@ -66,8 +66,8 @@ const BOX_STYLES = {
 };
 
 const LINE_COLOR = 'rgba(26, 24, 20, 0.15)';
-const LINE_HOVER_COLOR = '#40A684';
-const TEAL_ACCENT = '#40A684';
+const LINE_HOVER_COLOR = '#3D8C6E';
+const TEAL_ACCENT = '#3D8C6E';
 
 const BOX_NOTES = {
   'Seed-advanced': 'Only 1 in 5 Seed-funded companies raise a Series A within three years of the close of their Seed round. The filter here is brutal \u2014 most startups simply run out of runway before finding product-market fit.',
@@ -429,6 +429,7 @@ function initClickOutside(svg, g) {
 }
 
 function showTooltip(d) {
+  stopJourneyRotation();
   const statsEl = document.getElementById('tooltip-stats');
   const noteEl = document.getElementById('tooltip-note');
   const titleEl = document.getElementById('tooltip-title');
@@ -459,10 +460,116 @@ function showTooltip(d) {
   noteEl.innerHTML = `<p class="tooltip-note-text">${note}</p>`;
 }
 
+// === ROTATING STATS ===
+let _journeyRotIdx    = 0;
+let _destRotIdx       = 0;
+let _journeyRotTimer  = null;
+let _destRotTimer     = null;
+
+function getRotatingStats() {
+  if (!PATHS || !PATHS.length) return [];
+  const a = loadAssumptions();
+  const cohort = a.cohortSize || 10000;
+  const failSeed    = PATHS.filter(p => p.outcome === 'failed' && p.stage === 'Seed').reduce((s,p) => s + p.probability, 0);
+  const anyPositive = PATHS.filter(p => p.outcome !== 'failed').reduce((s,p) => s + p.probability, 0);
+  const unicorn     = PATHS.filter(p => p.outcome === 'advanced').reduce((s,p) => s + p.probability, 0);
+  const allFail     = PATHS.filter(p => p.outcome === 'failed').reduce((s,p) => s + p.probability, 0);
+  const reachA      = PATHS.filter(p => p.stage !== 'Seed').reduce((s,p) => s + p.probability, 0);
+  return [
+    {
+      number: `${(failSeed * 100).toFixed(1)}%`,
+      label:  'Never Leave Seed',
+      context: `${(failSeed * 100).toFixed(1)}% of seed-funded founders stall at Seed and walk away with nothing \u2014 making it by far the single most common outcome across the entire venture landscape.`
+    },
+    {
+      number: `1 in ${Math.round(1 / anyPositive)}`,
+      label:  'Sees Any Positive Return',
+      context: `Only ${(anyPositive * 100).toFixed(1)}% of founders see any financial return at exit. The other ${(allFail * 100).toFixed(1)}% spend years building and walk away with $0.`
+    },
+    {
+      number: `${Math.round(unicorn * cohort)}`,
+      label:  `of ${cohort.toLocaleString()} Reach Unicorn Status`,
+      context: `Of every ${cohort.toLocaleString()} seed-funded founders, only ${Math.round(unicorn * cohort)} ever reach unicorn status \u2014 ${(unicorn * 100).toFixed(2)}% \u2014 and even they aren\u2019t guaranteed a life-changing payout.`
+    },
+    {
+      number: `${(allFail * 100).toFixed(1)}%`,
+      label:  'End in Complete Failure',
+      context: `${(allFail * 100).toFixed(1)}% of all exit paths end with the company failing, stalling, or being acquired for little to no value. In every one of those cases, the founder receives $0.`
+    },
+    {
+      number: `${Math.round(reachA * cohort).toLocaleString()}`,
+      label:  `of ${cohort.toLocaleString()} Reach Series A`,
+      context: `Of ${cohort.toLocaleString()} seed-funded founders, only ${Math.round(reachA * cohort).toLocaleString()} ever raise a Series A \u2014 a ${(reachA * 100).toFixed(1)}% survival rate. The odds get harder with every subsequent round.`
+    }
+  ];
+}
+
+function _applyRotatingStat(stat, statsId, noteId, titleId) {
+  const s = document.getElementById(statsId);
+  const n = document.getElementById(noteId);
+  const t = document.getElementById(titleId);
+  if (t) t.textContent = 'By The Numbers';
+  if (s) s.innerHTML   = `<div class="rotating-stat-number">${stat.number}</div><div class="rotating-stat-label">${stat.label}</div>`;
+  if (n) n.innerHTML   = `<p class="tooltip-note-text">${stat.context}</p>`;
+}
+
+function startJourneyRotation() {
+  if (_journeyRotTimer) return; // already running
+  const stats = getRotatingStats();
+  if (!stats.length) return;
+  _applyRotatingStat(stats[_journeyRotIdx % stats.length], 'tooltip-stats', 'tooltip-note', 'tooltip-title');
+  _journeyRotTimer = setInterval(() => {
+    _journeyRotIdx = (_journeyRotIdx + 1) % stats.length;
+    const s = document.getElementById('tooltip-stats');
+    const n = document.getElementById('tooltip-note');
+    if (s) s.style.opacity = '0';
+    if (n) n.style.opacity = '0';
+    setTimeout(() => {
+      _applyRotatingStat(stats[_journeyRotIdx], 'tooltip-stats', 'tooltip-note', 'tooltip-title');
+      if (s) s.style.opacity = '1';
+      if (n) n.style.opacity = '1';
+    }, 300);
+  }, 4500);
+}
+
+function stopJourneyRotation() {
+  if (_journeyRotTimer) { clearInterval(_journeyRotTimer); _journeyRotTimer = null; }
+  const s = document.getElementById('tooltip-stats');
+  const n = document.getElementById('tooltip-note');
+  if (s) s.style.opacity = '1';
+  if (n) n.style.opacity = '1';
+}
+
+function startDestRotation() {
+  if (_destRotTimer) return; // already running
+  const stats = getRotatingStats();
+  if (!stats.length) return;
+  _applyRotatingStat(stats[_destRotIdx % stats.length], 'dest-context-stats', 'dest-context-note', 'dest-context-title');
+  _destRotTimer = setInterval(() => {
+    _destRotIdx = (_destRotIdx + 1) % stats.length;
+    const s = document.getElementById('dest-context-stats');
+    const n = document.getElementById('dest-context-note');
+    if (s) s.style.opacity = '0';
+    if (n) n.style.opacity = '0';
+    setTimeout(() => {
+      _applyRotatingStat(stats[_destRotIdx], 'dest-context-stats', 'dest-context-note', 'dest-context-title');
+      if (s) s.style.opacity = '1';
+      if (n) n.style.opacity = '1';
+    }, 300);
+  }, 5000); // offset from Journey's 4500ms to avoid sync issues
+}
+
+function stopDestRotation() {
+  if (_destRotTimer) { clearInterval(_destRotTimer); _destRotTimer = null; }
+  const s = document.getElementById('dest-context-stats');
+  const n = document.getElementById('dest-context-note');
+  if (s) s.style.opacity = '1';
+  if (n) n.style.opacity = '1';
+}
+
 function resetTooltip() {
-  document.getElementById('tooltip-title').textContent = 'Hover over a path to explore';
-  document.getElementById('tooltip-stats').innerHTML = '<p class="tooltip-hint">Each box represents a group of founders.</p>';
-  document.getElementById('tooltip-note').innerHTML = '<p class="tooltip-hint">The box height shows the probability of that outcome.</p>';
+  stopJourneyRotation();
+  startJourneyRotation();
 }
 
 function fmtOdds(p) {
@@ -913,8 +1020,8 @@ function buildEndpointData() {
     'Series C': seedOwn * (1 - dilA) * (1 - dilB) * (1 - dilC),
   };
   const COLORS = {
-    advanced: '#40A684', twohalf: '#3D7020',
-    one: '#CC9600', half: '#D07000', failed: '#B03545',
+    advanced: '#3D8C6E', twohalf: '#3D8C6E',
+    one: '#A08520', half: '#B57A30', failed: '#C43E3E',
   };
   const NAMES = {
     advanced: 'Unicorn Status', twohalf: '2.5\u00d7 Exit',
@@ -1082,6 +1189,7 @@ const OUTCOME_CONTEXT_TEXTS = {
 };
 
 function updateDestContextPanel(key) {
+  stopDestRotation();
   const panel  = document.getElementById('dest-context-panel');
   const title  = document.getElementById('dest-context-title');
   const stats  = document.getElementById('dest-context-stats');
@@ -1104,22 +1212,10 @@ function updateDestContextPanel(key) {
 
 function clearDestContextPanel() {
   const panel = document.getElementById('dest-context-panel');
-  const title = document.getElementById('dest-context-title');
-  const stats = document.getElementById('dest-context-stats');
-  const note  = document.getElementById('dest-context-note');
   if (!panel) return;
   panel.classList.remove('is-locked');
-  if (title) title.textContent = 'All Founders · Aggregate View';
-  // Compute live aggregate stats from PATHS
-  const posProb  = PATHS.filter(p => p.outcome !== 'failed').reduce((s, p) => s + p.probability, 0);
-  const failProb = PATHS.filter(p => p.outcome === 'failed').reduce((s, p) => s + p.probability, 0);
-  const cohort   = (loadAssumptions().cohortSize || 10000);
-  if (stats) stats.innerHTML = `
-    <div class="tooltip-stat"><span class="tooltip-stat-label">Positive exit</span><span class="tooltip-stat-value">${(posProb * 100).toFixed(1)}% of founders</span></div>
-    <div class="tooltip-stat"><span class="tooltip-stat-label">Failed / $0</span><span class="tooltip-stat-value">${(failProb * 100).toFixed(1)}% of founders</span></div>
-    <div class="tooltip-stat"><span class="tooltip-stat-label">Cohort size</span><span class="tooltip-stat-value">${cohort.toLocaleString()} founders</span></div>
-  `;
-  if (note) note.innerHTML = '<p class="tooltip-note-text">Hover any outcome in the charts above — or click to lock — to see the probability, founder proceeds, and context for each specific exit path.</p>';
+  stopDestRotation();
+  startDestRotation();
 }
 
 let _destLeaveTimer = null;
@@ -1375,6 +1471,8 @@ document.addEventListener('DOMContentLoaded', () => {
   renderSummaryCards('summary-grid-dest');
   initDestContextPanel();
   renderEndpointChart();
+  startJourneyRotation();
+  startDestRotation();
 
   // Carta lightbox
   const lightbox    = document.getElementById('carta-lightbox');
